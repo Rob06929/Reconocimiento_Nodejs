@@ -164,8 +164,8 @@ const main = async (file1, file2) => {
 
 //configuring the AWS 
 AWS.config.update({
-    accessKeyId: "AKIA2UMD57AKMEEY6INH",
-    secretAccessKey: "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"
+    accessKeyId: 
+    secretAccessKey:
   });
 
 var s3 = new AWS.S3();
@@ -196,8 +196,8 @@ debugger;*/
 /*(async function(){
 
   AWS.config.update({
-    accessKeyId: "AKIA2UMD57AKMEEY6INH",
-    secretAccessKey: "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"
+    accessKeyId: 
+    secretAccessKey: 
   });
   try {
       AWS.config.setPromisesDependency();
