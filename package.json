@@ -1,0 +1,26 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.5.0",
+    "@vladmandic/face-api": "^1.7.11",
+    "@vladmandic/pilogger": "^0.4.8",
+    "aws-sdk": "^2.1374.0",
+    "canvas": "^2.11.2",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "mongoose": "^7.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
