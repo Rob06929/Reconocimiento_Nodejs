@@ -14,6 +14,7 @@ const tf = require('@tensorflow/tfjs-node'); // in nodejs environments tfjs-node
  const mongoose = require('mongoose');
  const fileUpload = require('express-fileupload');
  
+ const https = require('http');
 
 
  const port=process.env.PORT||3200;
@@ -28,8 +29,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
 AWS.config.update({
-  accessKeyId: "",
-  secretAccessKey: "",
+  accessKeyId: "AKIA2UMD57AKKA5BRIUI",
+  secretAccessKey: "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",
 });
 
 var s3 = new AWS.S3();
@@ -58,7 +59,7 @@ app.get('/api/getUser/:_ci',(req,res)=>{
   console.log("end point GET USER successfull")
 })
 
-app.post('/api/verification', (req,res)=>{
+app.post('/api/verification-login', (req,res)=>{
   
   const { file } = req.files;
   const {ci} = req.body;
@@ -81,9 +82,10 @@ app.post('/api/verification', (req,res)=>{
         main('./images/'+path_image_reference, './images/'+path_image_test).then((data)=>{
           console.log(data);
           if (data>0.5) {
-            res.send("no coincidencia");
+            
+            res.send("no coincidencia").status(400);
           }else{
-            res.send("coincidencia");
+            res.send("coincidencia").status(200);
           }
         });
         
@@ -97,6 +99,65 @@ app.post('/api/verification', (req,res)=>{
   
   }))
   .catch((error)=>console.log(error));
+ 
+});
+
+app.post('/api/verification-registro', (req,res)=>{
+  
+  const { file } = req.files;
+  const {name} = req.body;
+  let path_image_reference;
+  let path_image_test;
+  if (!file) return res.sendStatus(400);
+  path_image_test="image_test.jpg";
+  file.mv("./images/"+path_image_test);
+
+  https.get('http://localhost:8000/api/actions/get-user/'+name, response => {
+  let data =[];
+  response.on('data', chunk => {
+    data.push(chunk);
+    console.log("on Response")
+    
+  });
+
+  response.on('end', () => {
+    data=JSON.parse(Buffer.concat(data).toString());;
+    console.log("data re"+data);
+    path_image_reference="image_reference.jpg";
+    var params = {
+      Bucket: "ex-software1",
+      Key: data["url_foto"]
+    };
+    var file = fs.createWriteStream("./images/"+path_image_reference);
+    file.on('close', function(){
+        console.log('done'); 
+        main('./images/'+path_image_reference, './images/'+path_image_test).then((data)=>{
+          console.log(data);
+          if (data>0.5) {
+            
+            res.send("no coincidencia").status(400);
+          }else{
+            res.send("coincidencia").status(200);
+          }
+        });
+        
+    });
+    s3.getObject(params).createReadStream().on('error', function(err){
+        console.log(err);
+    }).pipe(file);  
+    console.log(file.path);    
+
+
+    console.log("request end")
+  });
+  }).on('error', err => {
+    console.log('Error: ', err.message);
+  });
+
+
+    //res.sendStatus(200);
+  
+ 
  
 });
 
