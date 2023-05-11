@@ -29,8 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
 AWS.config.update({
-  accessKeyId: "AKIA2UMD57AKKA5BRIUI",
-  secretAccessKey: "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",
+  
 });
 
 var s3 = new AWS.S3();
