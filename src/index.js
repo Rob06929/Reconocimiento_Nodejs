@@ -4,10 +4,10 @@ const canvas = require('canvas'); // eslint-disable-line node/no-missing-require
 const fs = require('fs');
 const path = require('path');
 const process = require('process');
-const log = require('@vladmandic/pilogger');
-const tf = require('@tensorflow/tfjs-node'); // in nodejs environments tfjs-node is required to be loaded before face-api
-//const faceapi = require('../dist/face-api.node.js'); // use this when using face-api in dev mode
- const faceapi = require('@vladmandic/face-api'); // use this when face-api is installed as module (majority of use cases)
+const tf = require('@tensorflow/tfjs');
+const wasm = require('@tensorflow/tfjs-backend-wasm');
+const faceapi = require('@vladmandic/face-api/dist/face-api.node-wasm.js');
+const image = require('@canvas/image');
 
  const AWS = require('aws-sdk');
  const express = require('express');
@@ -16,7 +16,7 @@ const tf = require('@tensorflow/tfjs-node'); // in nodejs environments tfjs-node
  
  const https = require('http');
 
-
+ wasm.setWasmPaths('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/', true);
  const port=process.env.PORT||3200;
  mongoose.connect("mongodb+srv://robfernandez06929:Admin123@appalcaldia.fcs8nin.mongodb.net/?retryWrites=true&w=majority").
  then(()=>console.log("Conectado a MongoDB"));
@@ -29,7 +29,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
 AWS.config.update({
-  
+  accessKeyId: "AKIA2UMD57AKKA5BRIUI",
+  secretAccessKey: "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",
 });
 
 var s3 = new AWS.S3();
@@ -162,7 +163,16 @@ app.post('/api/verification-registro', (req,res)=>{
 
 const getDescriptors = async (imageFile) => {
   const buffer = fs.readFileSync(imageFile);
-  const tensor = tf.node.decodeImage(buffer, 3);
+  const canvas = await image.imageFromBuffer(buffer);
+  const imageData = image.getImageData(canvas);
+  const tensor = tf.tidy(() => { // create tensor from image data
+    const data = tf.tensor(Array.from(imageData?.data || []), [canvas.height, canvas.width, 4], 'int32'); // create rgba image tensor from flat array and flip to height x width
+    const channels = tf.split(data, 4, 2); // split rgba to channels
+    const rgb = tf.stack([channels[0], channels[1], channels[2]], 2); // stack channels back to rgb
+    const squeeze = tf.squeeze(rgb); // move extra dim from the end of tensor and use it as batch number instead
+    return squeeze;
+  });
+  //const tensor = tf.tidy//tf.node.decodeImage(buffer, 3);
   const faces = await faceapi.detectAllFaces(tensor, optionsSSDMobileNet)
     .withFaceLandmarks()
     .withFaceDescriptors();
@@ -171,6 +181,8 @@ const getDescriptors = async (imageFile) => {
 };
 
 const main = async (file1, file2) => {
+  await tf.setBackend('wasm');
+  await tf.ready();
   console.log('input images:', file1, file2); // eslint-disable-line no-console
   await tf.ready();
   await faceapi.nets.ssdMobilenetv1.loadFromDisk('model');
