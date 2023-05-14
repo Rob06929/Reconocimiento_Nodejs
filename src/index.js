@@ -18,7 +18,7 @@ const image = require('@canvas/image');
 
  wasm.setWasmPaths('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/', true);
  const port=process.env.PORT||3200;
- mongoose.connect("mongodb+srv://robfernandez06929:Admin123@appalcaldia.fcs8nin.mongodb.net/?retryWrites=true&w=majority").
+ mongoose.connect("").
  then(()=>console.log("Conectado a MongoDB"));
 
  //const upload = multer({ dest:'../images/'});
@@ -29,8 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
 AWS.config.update({
-  accessKeyId: "AKIA2UMD57AKKA5BRIUI",
-  secretAccessKey: "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",
+ 
 });
 
 var s3 = new AWS.S3();
